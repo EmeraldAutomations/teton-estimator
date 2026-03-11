@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Teton Repair & Remodel — Instant Estimate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #0a0a0a;
+  --dark: #141414;
+  --card: #1c1c1c;
+  --border: #2a2a2a;
+  --red: #c0392b;
+  --red-bright: #e74c3c;
+  --red-dim: #7a1f18;
+  --grey-dark: #333;
+  --grey-mid: #666;
+  --grey-light: #999;
+  --white: #f0ede8;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  background: var(--black);
+  color: var(--white);
+  font-family: 'Barlow', sans-serif;
+  overflow: hidden;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ══ INTRO ══════════════════════════════════════ */
+#introScreen {
+  position: fixed;
+  inset: 0;
+  background: var(--black);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  text-align: center;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+#introScreen.hiding {
+  opacity: 0;
+  transform: translateY(-20px);
+  pointer-events: none;
+}
+
+.intro-logo { margin-bottom: 28px; animation: fadeUp 0.7s ease 0.1s both; }
+.intro-logo img { height: 54px; width: auto; }
+.intro-logo-fallback { display: none; flex-direction: column; align-items: center; gap: 4px; }
+.intro-logo-fallback .logo-main { font-family: 'Bebas Neue', sans-serif; font-size: 38px; letter-spacing: 4px; }
+.intro-logo-fallback .logo-sub { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; letter-spacing: 4px; color: var(--red); text-transform: uppercase; }
+
+.intro-headline {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(34px, 9vw, 56px);
+  letter-spacing: 3px;
+  line-height: 1.05;
+  margin-bottom: 16px;
+  animation: fadeUp 0.7s ease 0.25s both;
+}
+.intro-headline span { color: var(--red-bright); }
+
+.intro-sub {
+  font-size: 15px;
+  color: var(--grey-light);
+  line-height: 1.7;
+  max-width: 400px;
+  margin-bottom: 32px;
+  animation: fadeUp 0.7s ease 0.4s both;
+}
+
+.intro-stats {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin-bottom: 36px;
+  animation: fadeUp 0.7s ease 0.5s both;
+}
+
+.stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; }
+.stat-label { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--grey-mid); }
+.stat-divider { width: 1px; height: 38px; background: var(--border); }
+
+.intro-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+  animation: fadeUp 0.7s ease 0.6s both;
+}
+
+.btn-start {
+  width: 100%;
+  background: var(--red);
+  color: var(--white);
+  border: none;
+  padding: 16px 32px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 4px;
+  cursor: pointer;
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.2s, transform 0.1s;
+}
+.btn-start:hover { background: var(--red-bright); }
+.btn-start:active { transform: scale(0.98); }
+
+.intro-note { font-size: 12px; color: var(--grey-mid); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ══ APP ════════════════════════════════════════ */
+#appScreen {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+#appScreen.visible { display: flex; opacity: 1; }
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 18px;
+  background: var(--dark);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.header-logo img { height: 30px; width: auto; }
+.header-logo-fallback { display: none; flex-direction: column; line-height: 1; }
+.logo-main { font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 2px; }
+.logo-sub { font-family: 'Barlow Condensed', sans-serif; font-size: 9px; letter-spacing: 3px; color: var(--red); text-transform: uppercase; }
+
+.header-badge { display: flex; align-items: center; gap: 6px; background: rgba(192,57,43,0.1); border: 1px solid rgba(192,57,43,0.25); border-radius: 20px; padding: 5px 11px; }
+.badge-dot { width: 6px; height: 6px; background: var(--red-bright); border-radius: 50%; animation: pulse 2s ease-in-out infinite; flex-shrink: 0; }
+.badge-text { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--red-bright); font-weight: 600; white-space: nowrap; }
+
+@keyframes pulse {
+  0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(231,76,60,0.5); }
+  50% { opacity: 0.6; box-shadow: 0 0 0 5px rgba(231,76,60,0); }
+}
+
+/* Progress */
+.progress-wrap {
+  background: var(--dark);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px 12px;
+  flex-shrink: 0;
+}
+
+.progress-stages { display: flex; align-items: center; position: relative; }
+
+.progress-track {
+  position: absolute;
+  top: 11px;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background: var(--border);
+  z-index: 0;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--red);
+  width: 0%;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stage { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; position: relative; z-index: 1; }
+
+.stage-dot {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--dark);
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px; font-weight: 700;
+  color: var(--grey-mid);
+  transition: all 0.4s ease;
+}
+
+.stage.active .stage-dot { background: var(--red); border-color: var(--red); color: var(--white); box-shadow: 0 0 10px rgba(192,57,43,0.5); }
+.stage.done .stage-dot { background: var(--red-dim); border-color: var(--red); color: var(--red-bright); }
+
+.stage-label { font-family: 'Barlow Condensed', sans-serif; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--grey-mid); white-space: nowrap; transition: color 0.4s; }
+.stage.active .stage-label { color: var(--red-bright); }
+
+/* Chat */
+.chat-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-width: 820px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 16px;
+  min-height: 0;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 0 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+.messages::-webkit-scrollbar { width: 3px; }
+.messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Bubbles */
+.message { display: flex; gap: 10px; animation: msgIn 0.3s ease forwards; opacity: 0; }
+.message.user { flex-direction: row-reverse; }
+
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 8px; font-weight: 700; letter-spacing: 0.5px;
+  align-self: flex-end;
+}
+.avatar.ai { background: var(--red); color: var(--white); }
+.avatar.user-av { background: var(--grey-dark); color: var(--grey-light); }
+
+.bubble { max-width: 78%; padding: 11px 15px; font-size: 14px; line-height: 1.65; }
+.message.ai .bubble { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--red); border-radius: 0 10px 10px 0; }
+.message.user .bubble { background: var(--red-dim); border: 1px solid rgba(192,57,43,0.4); border-radius: 10px 0 0 10px; }
+
+/* Estimate card */
+.estimate-card {
+  background: linear-gradient(135deg, #1e1e1e, #141414);
+  border: 1px solid var(--red);
+  border-radius: 6px;
+  padding: 18px;
+  margin-top: 10px;
+}
+.estimate-label { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--red-bright); margin-bottom: 10px; }
+.estimate-range { font-family: 'Bebas Neue', sans-serif; font-size: clamp(26px, 7vw, 40px); letter-spacing: 2px; line-height: 1; margin-bottom: 6px; }
+.estimate-summary { font-size: 13px; color: var(--grey-light); margin: 8px 0; line-height: 1.6; }
+.estimate-factors { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.factor-item { font-size: 12px; color: var(--grey-mid); padding-left: 12px; border-left: 2px solid var(--red-dim); line-height: 1.5; }
+.estimate-disclaimer { font-size: 11px; color: var(--grey-mid); margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); font-style: italic; line-height: 1.5; }
+
+/* Lead form */
+.lead-form { background: var(--card); border: 1px solid var(--border); border-top: 3px solid var(--red); border-radius: 6px; padding: 16px; margin-top: 10px; }
+.lead-form-title { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--grey-light); margin-bottom: 12px; }
+.lead-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.lead-fields input {
+  background: var(--dark);
+  border: 1px solid var(--border);
+  color: var(--white);
+  padding: 10px 12px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  border-radius: 2px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  -webkit-appearance: none;
+}
+.lead-fields input:focus { border-color: var(--red); }
+.lead-fields input::placeholder { color: var(--grey-dark); }
+.lead-fields input.full { grid-column: 1 / -1; }
+.lead-fields input.error { border-color: var(--red-bright); }
+
+.btn-submit { width: 100%; background: var(--red); color: var(--white); border: none; padding: 13px; font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 3px; cursor: pointer; border-radius: 2px; transition: background 0.2s; margin-bottom: 8px; }
+.btn-submit:hover { background: var(--red-bright); }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-book { display: block; width: 100%; text-align: center; background: transparent; border: 1px solid var(--border); color: var(--grey-light); padding: 10px; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; border-radius: 2px; transition: all 0.2s; }
+.btn-book:hover { border-color: var(--red); color: var(--red-bright); }
+
+/* Success */
+.success-card { text-align: center; padding: 20px 12px; }
+.success-check { width: 42px; height: 42px; background: rgba(192,57,43,0.15); border: 2px solid var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 18px; color: var(--red-bright); animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
+@keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.success-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 3px; margin-bottom: 8px; }
+.success-card p { font-size: 13px; color: var(--grey-light); line-height: 1.65; }
+.success-phone { display: inline-block; margin-top: 12px; color: var(--red-bright); font-family: 'Barlow Condensed', sans-serif; font-size: 16px; letter-spacing: 2px; text-decoration: none; }
+
+/* Typing */
+.typing-indicator { display: flex; gap: 10px; animation: msgIn 0.3s ease forwards; }
+.typing-dots { display: flex; align-items: center; gap: 5px; padding: 13px 16px; background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--red); border-radius: 0 10px 10px 0; }
+.typing-dots span { width: 6px; height: 6px; background: var(--red); border-radius: 50%; animation: bounce 1.3s ease-in-out infinite; }
+.typing-dots span:nth-child(2) { animation-delay: 0.18s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes bounce { 0%,60%,100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-6px); opacity: 1; } }
+
+/* Quick replies */
+.quick-replies { display: flex; flex-wrap: wrap; gap: 7px; padding-left: 40px; animation: msgIn 0.3s ease 0.1s both; }
+.qr-btn { background: transparent; border: 1px solid var(--border); color: var(--grey-light); padding: 7px 12px; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; letter-spacing: 1px; cursor: pointer; border-radius: 2px; transition: all 0.2s; white-space: nowrap; }
+.qr-btn:hover { border-color: var(--red); color: var(--white); background: rgba(192,57,43,0.1); }
+
+/* Input */
+.input-area { padding: 10px 0 12px; flex-shrink: 0; }
+.input-row { display: flex; gap: 8px; align-items: flex-end; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; transition: border-color 0.2s; }
+.input-row:focus-within { border-color: var(--red); }
+
+textarea { flex: 1; background: transparent; border: none; color: var(--white); font-family: 'Barlow', sans-serif; font-size: 14px; resize: none; outline: none; line-height: 1.5; max-height: 100px; overflow-y: auto; }
+textarea::placeholder { color: var(--grey-dark); }
+
+.send-btn { background: var(--red); border: none; width: 34px; height: 34px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s; }
+.send-btn:hover { background: var(--red-bright); }
+.send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.send-btn svg { width: 14px; height: 14px; fill: white; }
+
+.input-hint { text-align: center; font-size: 10px; color: var(--grey-dark); margin-top: 5px; }
+
+.phone-footer { text-align: center; padding: 4px 16px 10px; font-size: 12px; color: var(--grey-mid); flex-shrink: 0; }
+.phone-footer a { color: var(--red-bright); text-decoration: none; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 1px; font-weight: 600; }
+
+/* Mobile */
+@media (max-width: 480px) {
+  .intro-stats { gap: 18px; }
+  .stat-num { font-size: 24px; }
+  .lead-fields { grid-template-columns: 1fr; }
+  .bubble { max-width: 88%; font-size: 13px; }
+  .stage-label { display: none; }
+  .badge-text { display: none; }
+  .chat-wrapper { padding: 0 10px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ INTRO ══════════════════════════════════════ -->
+<div id="introScreen">
+  <div class="intro-logo">
+    <img src="https://tetonremodel.com/wp-content/uploads/2025/10/teton-logo.webp" alt="Teton Repair & Remodel"
+      onerror="this.style.display='none'; document.querySelector('.intro-logo-fallback').style.display='flex';">
+    <div class="intro-logo-fallback">
+      <span class="logo-main">TETON</span>
+      <span class="logo-sub">Repair & Remodel</span>
+    </div>
+  </div>
+
+  <h1 class="intro-headline">Get Your<br><span>Free Estimate</span><br>In Minutes</h1>
+
+  <p class="intro-sub">Answer a few quick questions and our AI estimator gives you a ballpark cost range — no salesperson, no pressure.</p>
+
+  <div class="intro-stats">
+    <div class="stat">
+      <span class="stat-num">30+</span>
+      <span class="stat-label">Yrs Experience</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <span class="stat-num">FREE</span>
+      <span class="stat-label">Estimates</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <span class="stat-num">5 MIN</span>
+      <span class="stat-label">To Estimate</span>
+    </div>
+  </div>
+
+  <div class="intro-cta">
+    <button class="btn-start" onclick="startApp()">GET MY ESTIMATE →</button>
+    <span class="intro-note">Serving Rexburg, Idaho Falls, Pocatello & surrounding areas</span>
+  </div>
+</div>
+
+<!-- ══ APP ════════════════════════════════════════ -->
+<div id="appScreen">
+
+  <div class="header">
+    <div class="header-logo">
+      <img src="https://tetonremodel.com/wp-content/uploads/2025/10/teton-logo.webp" alt="Teton Repair & Remodel"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="header-logo-fallback">
+        <span class="logo-main">TETON</span>
+        <span class="logo-sub">Repair & Remodel</span>
+      </div>
+    </div>
+    <div class="header-badge">
+      <div class="badge-dot"></div>
+      <span class="badge-text">AI Estimator</span>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-stages">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="stage active" id="stage-1"><div class="stage-dot">1</div><span class="stage-label">Project</span></div>
+      <div class="stage" id="stage-2"><div class="stage-dot">2</div><span class="stage-label">Details</span></div>
+      <div class="stage" id="stage-3"><div class="stage-dot">3</div><span class="stage-label">Budget</span></div>
+      <div class="stage" id="stage-4"><div class="stage-dot">4</div><span class="stage-label">Estimate</span></div>
+      <div class="stage" id="stage-5"><div class="stage-dot">5</div><span class="stage-label">Contact</span></div>
+    </div>
+  </div>
+
+  <div class="chat-wrapper">
+    <div class="messages" id="messages"></div>
+    <div class="input-area">
+      <div class="input-row">
+        <textarea id="userInput" placeholder="Type your answer here..." rows="1"
+          oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+          <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+        </button>
+      </div>
+      <div class="input-hint">Enter to send · Shift+Enter for new line</div>
+    </div>
+    <div class="phone-footer">Prefer to call? <a href="tel:+19072523128">(907) 252-3128</a></div>
+  </div>
+
+</div>
+
+<script>
+// ══ CONFIG ═══════════════════════════════════════
+const N8N_WEBHOOK_URL = 'YOUR_N8N_WEBHOOK_URL_HERE';
+const SYSTEM_PROMPT = `You are an expert remodeling estimator for Teton Repair & Remodel, a trusted contractor based in Rexburg, Idaho with 30+ years of experience. You serve Rexburg, Idaho Falls, Pocatello, Blackfoot, and surrounding Eastern Idaho areas.
+
+Your job: have a warm, consultative conversation to understand the customer's project, then provide a ballpark estimate. Be like a knowledgeable contractor friend — helpful, direct, no fluff.
+
+SERVICES YOU ESTIMATE:
+- Bathroom remodels (cosmetic refresh, full gut, custom shower, tile)
+- Kitchen remodels (cabinets, countertops, backsplash, full remodel)
+- Flooring (hardwood, LVP, tile, carpet)
+- Windows & doors (replacement, new install, egress)
+- Drywall (repair, full rooms, texture, finishing)
+- Siding installation (vinyl, fiber cement)
+- Basement finishing & egress windows
+- Handyman / general repairs
+
+CONVERSATION RULES:
+- Ask ONLY ONE question at a time
+- Keep responses short and conversational — 2-3 sentences max before the estimate
+- Be warm and down-to-earth, like a local Idaho contractor
+- Suggest quick replies when helpful using this format: [QUICK:Option1|Option2|Option3]
+- After 4-6 exchanges you should have enough info for an estimate
+
+STAGE TAGS — include silently so the UI updates the progress bar:
+- After learning project type: [STAGE:2]
+- After learning size/scope: [STAGE:3]
+- After learning material preference: [STAGE:3]
+- When providing the estimate: [STAGE:4]
+- After estimate is shown: [STAGE:5]
+
+INFO TO GATHER (naturally, in order):
+1. Project type
+2. Approximate size/scope (sq ft, room size, # of units)
+3. Current condition (cosmetic touch-up vs full gut)
+4. Material preference (economy, mid-range, premium)
+5. Timeline (flexible, 3-6 months, ASAP)
+
+ESTIMATE FORMAT — use EXACTLY when you have enough info:
+[ESTIMATE_START]
+LOW: $X,XXX
+HIGH: $X,XXX
+SUMMARY: One sentence describing the scope
+FACTORS:
+- Factor that pushes cost higher
+- Factor that brings cost down
+- Another key variable
+[ESTIMATE_END]
+
+After the estimate block, write 1-2 warm sentences inviting them to share contact info.
+
+IDAHO PRICING GUIDE (2024-2025):
+- Bathroom cosmetic: $3,000–$8,000
+- Bathroom full gut: $8,000–$25,000
+- Kitchen cosmetic: $5,000–$15,000
+- Kitchen full remodel: $20,000–$65,000+
+- Flooring installed: $3–$12/sq ft
+- Window replacement (each): $450–$1,300
+- Egress window: $1,500–$4,500
+- Drywall per room: $500–$2,500
+- Vinyl siding: $5–$10/sq ft installed
+- Basement finish: $20–$55/sq ft
+- Handyman: $75–$120/hr
+
+RULES:
+- Always clarify this is a ballpark, not a binding quote
+- Never guarantee final pricing
+- Start by warmly greeting them and asking what project they have in mind`;
+
+// ══ STATE ════════════════════════════════════════
+let history = [];
+let isThinking = false;
+let leadCaptured = false;
+let currentStage = 1;
+
+// ══ INTRO TRANSITION ════════════════════════════
+function startApp() {
+  const intro = document.getElementById('introScreen');
+  const app = document.getElementById('appScreen');
+  intro.classList.add('hiding');
+  setTimeout(() => {
+    intro.style.display = 'none';
+    app.style.display = 'flex';
+    requestAnimationFrame(() => app.classList.add('visible'));
+    initChat();
+  }, 600);
+}
+
+function initChat() {
+  addAIMessage(
+    "Hey! Great to have you here. I'm going to help you get a ballpark estimate for your project — just takes a few minutes.\n\nWhat are you thinking about remodeling?",
+    ["Bathroom remodel", "Kitchen remodel", "Flooring", "Windows or doors", "Basement", "Something else"]
+  );
+}
+
+// ══ PROGRESS ════════════════════════════════════
+function setStage(n) {
+  if (n <= currentStage) return;
+  currentStage = n;
+  document.getElementById('progressFill').style.width = ((n - 1) / 4 * 100) + '%';
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById('stage-' + i);
+    el.classList.remove('active', 'done');
+    if (i < n) el.classList.add('done');
+    if (i === n) el.classList.add('active');
+  }
+}
+
+// ══ RENDER MESSAGES ══════════════════════════════
+function addAIMessage(rawText, quickReplies = []) {
+  const stageMatch = rawText.match(/\[STAGE:(\d)\]/);
+  if (stageMatch) setStage(parseInt(stageMatch[1]));
+  let text = rawText.replace(/\[STAGE:\d\]/g, '').trim();
+
+  const inlineQR = [];
+  text = text.replace(/\[QUICK:([^\]]+)\]/g, (_, opts) => {
+    opts.split('|').forEach(o => inlineQR.push(o.trim()));
+    return '';
+  }).trim();
+
+  const allQR = [...quickReplies, ...inlineQR];
+  const container = document.getElementById('messages');
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'message ai';
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar ai';
+  avatar.textContent = 'TRR';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+
+  if (text.includes('[ESTIMATE_START]')) {
+    const before = text.split('[ESTIMATE_START]')[0].trim();
+    const block = (text.match(/\[ESTIMATE_START\]([\s\S]*?)\[ESTIMATE_END\]/) || [])[1] || '';
+    const after = (text.split('[ESTIMATE_END]')[1] || '').trim();
+
+    if (before) bubble.innerHTML = formatText(before);
+
+    const low = block.match(/LOW:\s*\$?([\d,]+)/i);
+    const high = block.match(/HIGH:\s*\$?([\d,]+)/i);
+    const summary = block.match(/SUMMARY:\s*(.+)/i);
+    const factorsRaw = block.match(/FACTORS:([\s\S]*)/i);
+
+    if (low && high) {
+      const factors = factorsRaw
+        ? factorsRaw[1].trim().split('\n').filter(l => l.trim())
+            .map(l => `<div class="factor-item">${l.replace(/^[-•*]\s*/, '')}</div>`).join('')
+        : '';
+      const card = document.createElement('div');
+      card.className = 'estimate-card';
+      card.innerHTML = `
+        <div class="estimate-label">BALLPARK ESTIMATE</div>
+        <div class="estimate-range">$${low[1]} – $${high[1]}</div>
+        ${summary ? `<p class="estimate-summary">${summary[1]}</p>` : ''}
+        ${factors ? `<div class="estimate-factors">${factors}</div>` : ''}
+        <div class="estimate-disclaimer">⚠ Ballpark only — not a binding quote. Final pricing depends on site conditions, materials, and full project scope.</div>
+      `;
+      bubble.appendChild(card);
+      setStage(4);
+      setTimeout(showLeadCapture, 700);
+    }
+
+    if (after) {
+      const d = document.createElement('div');
+      d.style.marginTop = '10px';
+      d.innerHTML = formatText(after);
+      bubble.appendChild(d);
+    }
+  } else {
+    bubble.innerHTML = formatText(text);
+  }
+
+  wrapper.appendChild(avatar);
+  wrapper.appendChild(bubble);
+  container.appendChild(wrapper);
+
+  if (allQR.length > 0) {
+    const qrWrap = document.createElement('div');
+    qrWrap.className = 'quick-replies';
+    allQR.forEach(label => {
+      const btn = document.createElement('button');
+      btn.className = 'qr-btn';
+      btn.textContent = label;
+      btn.onclick = () => {
+        container.querySelectorAll('.quick-replies').forEach(el => el.remove());
+        sendUserMessage(label);
+      };
+      qrWrap.appendChild(btn);
+    });
+    container.appendChild(qrWrap);
+  }
+
+  scrollBottom();
+}
+
+function addUserMessage(text) {
+  const container = document.getElementById('messages');
+  const wrapper = document.createElement('div');
+  wrapper.className = 'message user';
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar user-av';
+  avatar.textContent = 'YOU';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+  wrapper.appendChild(avatar);
+  wrapper.appendChild(bubble);
+  container.appendChild(wrapper);
+  scrollBottom();
+}
+
+function showTyping() {
+  const container = document.getElementById('messages');
+  const el = document.createElement('div');
+  el.className = 'typing-indicator';
+  el.id = 'typingDots';
+  const av = document.createElement('div');
+  av.className = 'avatar ai';
+  av.textContent = 'TRR';
+  const dots = document.createElement('div');
+  dots.className = 'typing-dots';
+  dots.innerHTML = '<span></span><span></span><span></span>';
+  el.appendChild(av);
+  el.appendChild(dots);
+  container.appendChild(el);
+  scrollBottom();
+}
+
+function hideTyping() { document.getElementById('typingDots')?.remove(); }
+
+function showLeadCapture() {
+  if (leadCaptured) return;
+  const container = document.getElementById('messages');
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'padding-left: 40px; animation: msgIn 0.3s ease forwards; opacity: 0;';
+  const form = document.createElement('div');
+  form.className = 'lead-form';
+  form.id = 'leadForm';
+  form.innerHTML = `
+    <div class="lead-form-title">Claim Your Free In-Home Consultation</div>
+    <div class="lead-fields">
+      <input type="text" id="leadName" placeholder="Full name" class="full" autocomplete="name">
+      <input type="tel" id="leadPhone" placeholder="Phone number" autocomplete="tel">
+      <input type="email" id="leadEmail" placeholder="Email (optional)" autocomplete="email">
+    </div>
+    <button class="btn-submit" id="leadBtn" onclick="submitLead()">REQUEST FREE ESTIMATE</button>
+    <a href="https://tetonremodel.com/contact/" target="_blank" class="btn-book">BOOK ONLINE INSTEAD →</a>
+  `;
+  wrap.appendChild(form);
+  container.appendChild(wrap);
+  setStage(5);
+  scrollBottom();
+}
+
+async function submitLead() {
+  const name = document.getElementById('leadName').value.trim();
+  const phone = document.getElementById('leadPhone').value.trim();
+  const email = document.getElementById('leadEmail').value.trim();
+  document.getElementById('leadName').classList.toggle('error', !name);
+  document.getElementById('leadPhone').classList.toggle('error', !phone);
+  if (!name || !phone) return;
+
+  const btn = document.getElementById('leadBtn');
+  btn.disabled = true;
+  btn.textContent = 'SENDING...';
+
+  try {
+    if (USE_N8N && N8N_WEBHOOK_URL !== 'YOUR_N8N_WEBHOOK_URL_HERE') {
+      await fetch(N8N_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'lead', name, phone, email, conversation: history, timestamp: new Date().toISOString() })
+      });
+    }
+  } catch(e) { console.warn('Lead send failed:', e); }
+
+  leadCaptured = true;
+  document.getElementById('leadForm').innerHTML = `
+    <div class="success-card">
+      <div class="success-check">✓</div>
+      <h3>YOU'RE ALL SET</h3>
+      <p>Thanks, ${name}! The Teton team will reach out within 1 business day to schedule your free consultation.</p>
+      <a class="success-phone" href="tel:+19072523128">(907) 252-3128</a>
+    </div>
+  `;
+  scrollBottom();
+  setTimeout(() => addAIMessage(`You're in good hands, ${name}! Feel free to keep asking me anything about your project while you wait.`), 900);
+}
+
+// ══ AI CALL ══════════════════════════════════════
+async function callAI(userMessage) {
+  history.push({ role: 'user', content: userMessage });
+
+  const res = await fetch(N8N_WEBHOOK_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message: userMessage,
+      history: history,
+      systemPrompt: SYSTEM_PROMPT
+    })
+  });
+
+  const data = await res.json();
+  const reply = data.reply || data.message || data.text 
+    || "I'm having trouble — call us at (907) 252-3128.";
+
+  history.push({ role: 'assistant', content: reply });
+  return reply;
+}
+
+// ══ SEND ═════════════════════════════════════════
+async function sendUserMessage(text) {
+  if (isThinking) return;
+  document.getElementById('messages').querySelectorAll('.quick-replies').forEach(el => el.remove());
+  addUserMessage(text);
+  isThinking = true;
+  document.getElementById('sendBtn').disabled = true;
+  showTyping();
+  try {
+    const reply = await callAI(text);
+    hideTyping();
+    addAIMessage(reply);
+  } catch(e) {
+    hideTyping();
+    addAIMessage("Having a little trouble right now. Give us a call at (907) 252-3128 and we'll get you that estimate!");
+    console.error(e);
+  }
+  isThinking = false;
+  document.getElementById('sendBtn').disabled = false;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text || isThinking) return;
+  input.value = '';
+  input.style.height = 'auto';
+  await sendUserMessage(text);
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+function formatText(t) {
+  return '<p>' + t
+    .replace(/\n\n/g, '</p><p style="margin-top:7px">')
+    .replace(/\n/g, '<br>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') + '</p>';
+}
+
+function scrollBottom() {
+  const m = document.getElementById('messages');
+  if (m) setTimeout(() => m.scrollTop = m.scrollHeight, 60);
+}
+</script>
+</body>
+</html>
