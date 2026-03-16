@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       'X-Title': 'Teton Repair & Remodel Estimator'
     },
     body: JSON.stringify({
-      model: 'openai/gpt-4o-mini',
+      model: 'anthropic/claude-3-5-haiku',
       max_tokens: 1024,
       messages: [
         {
