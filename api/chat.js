@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // Handle CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -7,14 +6,16 @@ export default async function handler(req, res) {
 
   const { history } = req.body;
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+      'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      'HTTP-Referer': 'https://teton-estimator.vercel.app',
+      'X-Title': 'Teton Repair & Remodel Estimator'
     },
     body: JSON.stringify({
-      model: 'gpt-4o',
+      model: 'openai/gpt-4o-mini',
       max_tokens: 1024,
       messages: [
         {
@@ -88,12 +89,10 @@ Always clarify this is a ballpark, not a binding quote. Never guarantee final pr
   });
 
   const data = await response.json();
-
-  // Log the full response so we can debug
-  console.log('OpenAI response:', JSON.stringify(data));
+  console.log('OpenRouter response:', JSON.stringify(data));
 
   if (data.error) {
-    console.error('OpenAI error:', data.error.message);
+    console.error('OpenRouter error:', data.error.message);
     return res.json({ reply: `Error: ${data.error.message}` });
   }
 
