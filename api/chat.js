@@ -88,6 +88,15 @@ Always clarify this is a ballpark, not a binding quote. Never guarantee final pr
   });
 
   const data = await response.json();
+
+  // Log the full response so we can debug
+  console.log('OpenAI response:', JSON.stringify(data));
+
+  if (data.error) {
+    console.error('OpenAI error:', data.error.message);
+    return res.json({ reply: `Error: ${data.error.message}` });
+  }
+
   const reply = data.choices?.[0]?.message?.content
     || "I'm having trouble right now — please call us at (907) 252-3128.";
 
