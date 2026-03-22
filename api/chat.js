@@ -20,7 +20,7 @@ export default async function handler(req, res) {
       messages: [
         {
           role: 'system',
-          content: process.env.SYSTEM_PROMPT
+          content: require('fs').readFileSync(require('path').join(process.cwd(), 'prompt.md'), 'utf8')
         },
         ...history
       ]
