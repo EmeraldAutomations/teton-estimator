@@ -263,7 +263,7 @@ body::after {
 .avatar.ai { background: var(--red); color: var(--white); }
 .avatar.user-av { background: var(--grey-dark); color: var(--grey-light); }
 
-.bubble { max-width: 78%; padding: 11px 15px; font-size: 17px; line-height: 1.65; }
+.bubble { max-width: 78%; padding: 11px 15px; font-size: 16px; line-height: 1.65; }
 .message.ai .bubble { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--red); border-radius: 0 10px 10px 0; }
 .message.user .bubble { background: var(--red-dim); border: 1px solid rgba(192,57,43,0.4); border-radius: 10px 0 0 10px; }
 
@@ -304,7 +304,7 @@ body::after {
 .lead-fields input.full { grid-column: 1 / -1; }
 .lead-fields input.error { border-color: var(--red-bright); }
 
-.btn-submit { width: 100%; background: var(--red); color: var(--white); border: none; padding: 13px; font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 3px; cursor: pointer; border-radius: 2px; transition: background 0.2s; margin-bottom: 8px; }
+.btn-submit { width: 100%; background: var(--red); color: var(--white); border: none; padding: 13px; font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 3px; cursor: pointer; border-radius: 2px; transition: background 0.2s; margin-bottom: 8px; }
 .btn-submit:hover { background: var(--red-bright); }
 .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -329,8 +329,11 @@ body::after {
 
 /* Quick replies */
 .quick-replies { display: flex; flex-wrap: wrap; gap: 7px; padding-left: 40px; animation: msgIn 0.3s ease 0.1s both; }
-.qr-btn { background: transparent; border: 1px solid var(--border); color: var(--grey-light); padding: 7px 12px; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; letter-spacing: 1px; cursor: pointer; border-radius: 2px; transition: all 0.2s; white-space: nowrap; }
+.qr-btn { background: transparent; border: 1px solid var(--border); color: var(--grey-light); padding: 9px 14px; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; letter-spacing: 1px; cursor: pointer; border-radius: 2px; transition: all 0.2s; white-space: nowrap; }
 .qr-btn:hover { border-color: var(--red); color: var(--white); background: rgba(192,57,43,0.1); }
+.qr-btn.selected { border-color: var(--red); background: rgba(192,57,43,0.25); color: var(--white); }
+.qr-confirm { width: 100%; margin-top: 8px; background: var(--red); color: var(--white); border: none; padding: 9px 14px; font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; cursor: pointer; border-radius: 2px; transition: background 0.2s; }
+.qr-confirm:hover { background: var(--red-bright); }
 
 /* Input */
 .input-area { padding: 10px 0 12px; flex-shrink: 0; }
@@ -355,7 +358,7 @@ textarea::placeholder { color: var(--grey-dark); }
   .intro-stats { gap: 18px; }
   .stat-num { font-size: 24px; }
   .lead-fields { grid-template-columns: 1fr; }
-  .bubble { max-width: 88%; font-size: 13px; }
+  .bubble { max-width: 88%; font-size: 14px; }
   .stage-label { display: none; }
   .badge-text { display: none; }
   .chat-wrapper { padding: 0 10px; }
@@ -450,7 +453,6 @@ textarea::placeholder { color: var(--grey-dark); }
 
 <script>
 // ══ CONFIG ═══════════════════════════════════════
-// Update this to your Vercel deployment URL
 const API_URL = 'https://teton-estimator.vercel.app/api/chat';
 
 // ══ STATE ════════════════════════════════════════
@@ -498,6 +500,14 @@ function addAIMessage(rawText, quickReplies = []) {
   if (stageMatch) setStage(parseInt(stageMatch[1]));
   let text = rawText.replace(/\[STAGE:\d\]/g, '').trim();
 
+  // Parse multi-select tags
+  const inlineMulti = [];
+  text = text.replace(/\[MULTI:([^\]]+)\]/g, (_, opts) => {
+    opts.split('|').forEach(o => inlineMulti.push(o.trim()));
+    return '';
+  }).trim();
+
+  // Parse single-select tags
   const inlineQR = [];
   text = text.replace(/\[QUICK:([^\]]+)\]/g, (_, opts) => {
     opts.split('|').forEach(o => inlineQR.push(o.trim()));
@@ -505,6 +515,7 @@ function addAIMessage(rawText, quickReplies = []) {
   }).trim();
 
   const allQR = [...quickReplies, ...inlineQR];
+  const allMulti = [...inlineMulti];
   const container = document.getElementById('messages');
 
   const wrapper = document.createElement('div');
@@ -560,6 +571,7 @@ function addAIMessage(rawText, quickReplies = []) {
   wrapper.appendChild(bubble);
   container.appendChild(wrapper);
 
+  // Single-select quick replies
   if (allQR.length > 0) {
     const qrWrap = document.createElement('div');
     qrWrap.className = 'quick-replies';
@@ -573,6 +585,40 @@ function addAIMessage(rawText, quickReplies = []) {
       };
       qrWrap.appendChild(btn);
     });
+    container.appendChild(qrWrap);
+  }
+
+  // Multi-select quick replies
+  if (allMulti.length > 0) {
+    const qrWrap = document.createElement('div');
+    qrWrap.className = 'quick-replies';
+    const selected = new Set();
+
+    allMulti.forEach(label => {
+      const btn = document.createElement('button');
+      btn.className = 'qr-btn';
+      btn.textContent = label;
+      btn.onclick = () => {
+        if (selected.has(label)) {
+          selected.delete(label);
+          btn.classList.remove('selected');
+        } else {
+          selected.add(label);
+          btn.classList.add('selected');
+        }
+      };
+      qrWrap.appendChild(btn);
+    });
+
+    const confirm = document.createElement('button');
+    confirm.className = 'qr-confirm';
+    confirm.textContent = 'CONFIRM SELECTIONS →';
+    confirm.onclick = () => {
+      if (selected.size === 0) return;
+      container.querySelectorAll('.quick-replies').forEach(el => el.remove());
+      sendUserMessage(Array.from(selected).join(', '));
+    };
+    qrWrap.appendChild(confirm);
     container.appendChild(qrWrap);
   }
 
