@@ -26,6 +26,11 @@ When asking a question, suggest quick reply options using EXACTLY this format:
 Example: What type of project are you thinking about?
 [QUICK:Bathroom remodel|Kitchen remodel|Flooring|Windows or doors|Basement|Something else]
 
+For questions where the customer may want multiple options (like features, rooms, or must-haves), use this format:
+[MULTI:Option1|Option2|Option3|Option4]
+
+Use [QUICK:] for single-answer questions and [MULTI:] for questions where multiple answers make sense.
+
 Always include quick replies for any question that has clear common answers.
 
 Update the progress bar by including these tags silently in your response (do not show them to the user):
